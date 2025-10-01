@@ -3,6 +3,7 @@
 This project automates the extraction of maternity bag orders for GEMS and SAMWUMED medical schemes. It connects to a MySQL database, runs SQL queries, saves the results to Excel files, and sends email notifications based on the day of the week and data availability.
 
 ## 📁 Project Structure
+```
 Logistics-Report/
 ├── README.md
 ├── LICENSE
@@ -14,7 +15,7 @@ Logistics-Report/
 │   └── Logistic Report SAM.xlsx
 ├── requirements.txt
 ├── bags.log
-
+```
 ## ⚙️ Setup Instructions
 
 1. **Clone the repository** (if applicable) or place the script in your working directory.
@@ -61,4 +62,5 @@ The script sends an email to notify whether the data was loaded successfully the
 All operations and errors are logged to a file named bags.log.
 ## 🔒 License
 This project is licensed for Tshela Healthcare internal use only. See LICENSE for details.
+
 
