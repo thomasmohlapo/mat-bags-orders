@@ -13,13 +13,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Setup logging to both console and file
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("bags.log", mode='a'),
+        logging.StreamHandler()
+    ]
+)
 
 # Timestamp for filenames
 timestamp = datetime.now().strftime('%Y%m%d')
 
 # Email utility
 def send_email(subject, msg_body):
+    """
+    Send an email with the specified subject and message body. The function uses SMTP settings from environment variables.
+    """
     try:
         sender_email = os.getenv("SMTP_USER")
         receiver_email = os.getenv("SMTP_RECEIVER")
@@ -44,6 +55,28 @@ def send_email(subject, msg_body):
 
 # Base class for bag extraction
 class BagExtractor:
+    """Class to extract bag data from the database and save to Excel. 
+    Attributes:
+        host (str): Database host.
+        user (str): Database user.
+        password (str): Database password.
+        database (str): Database name.
+        output_dir (str): Directory to save the output file.
+        output_filename (str): Name of the output file.
+        output_path (str): Full path to the output file.
+        organization (str): Name of the organization (e.g., GEMS, SAMWUMED).
+        query (str): SQL query to execute.
+    Methods:
+        extract(): Executes the SQL query and saves the results to an Excel file.
+    Args:
+        organization (str): Name of the organization.
+        output_dir (str): Directory to save the output file.
+        output_filename (str): Name of the output file.
+        query (str): SQL query to execute.
+    Returns:
+        pd.DataFrame: DataFrame containing the query results, or None if an error occurs.
+    """
+
     def __init__(self, organization, output_dir, output_filename, query):
         self.host = os.getenv("DB_HOST")
         self.user = os.getenv("DB_USER")
@@ -70,6 +103,15 @@ class BagExtractor:
 
 # Class to get the latest order date
 class OrderDateChecker:
+    """Class to check the latest order date from the database.
+    Attributes:
+        host (str): Database host.
+        user (str): Database user.
+        password (str): Database password.
+        database (str): Database name.
+    Methods:
+        get_latest_order_date(): Fetches the latest order date from the database.
+    """
     def __init__(self):
         self.host = os.getenv("DB_HOST")
         self.user = os.getenv("DB_USER")
@@ -157,7 +199,7 @@ WHERE `tmc-live`.files.ReferenceNumber NOT IN (SELECT DISTINCT FileNumber FROM `
   AND `tmc-live`.tenants.name = 'Tshela'
   AND ROUND(40-(DATEDIFF(`tmc-live`.files.EDD, CURDATE())/7)) BETWEEN '26' AND '52'
   AND `tmc-live`.membermedicalaids.SchemeNumber NOT IN ('001206857','321654','001660649','001791026') -- "Member Request to not receive bag", "test file", "Member Request to not receive bag"
-  AND `tmc-live`.files.ReferenceNumber NOT IN ('00154564','00152448','00154555','00154564','00153366','00149421','00149261','00131603','00138904','00137460','00135895','00133859','00133127','00131789','00124027','00115373','00122997','00122696','00122251','00120735','00119031','00117012','00118508','00111701','00117921','00117099','00116514','00115691','00114396','00104745','00113924','00111243','00109060','00106306','00106081','00103713','00103761','00093910','00101050','00100405','00098169','00096667','00093843','00094563','00061374','00073128','00073299','00075462','00078626','00089085','00089991','00092644') ) -- 1 Duplicate file. 2&3 "Member Request to not receive bag" 4.Member received previous bag order(miscarrige) 5&6. Member number and file number changed.
+  AND `tmc-live`.files.ReferenceNumber NOT IN ('00166532','00164157','00154564','00152448','00154555','00154564','00153366','00149421','00149261','00131603','00138904','00137460','00135895','00133859','00133127','00131789','00124027','00115373','00122997','00122696','00122251','00120735','00119031','00117012','00118508','00111701','00117921','00117099','00116514','00115691','00114396','00104745','00113924','00111243','00109060','00106306','00106081','00103713','00103761','00093910','00101050','00100405','00098169','00096667','00093843','00094563','00061374','00073128','00073299','00075462','00078626','00089085','00089991','00092644') ) -- 1 Duplicate file. 2&3 "Member Request to not receive bag" 4.Member received previous bag order(miscarrige) 5&6. Member number and file number changed.
   
  SELECT  NewOrders.RegistrationDate AS 'Registration Date'
         ,NewOrders.CreatedDate AS 'CreatedDate'
@@ -185,7 +227,7 @@ WHERE `tmc-live`.files.ReferenceNumber NOT IN (SELECT DISTINCT FileNumber FROM `
   
      FROM NewOrders
 LEFT JOIN MultipleBirth
-	   ON NewOrders.FileNumber = MultipleBirth.FileNumber;"""
+	   ON NewOrders.FileNumber = MultipleBirth.FileNumber"""
 SAM_QUERY = """WITH MultipleBirth AS 
 (SELECT FileNumber
        ,IdNumber
